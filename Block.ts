@@ -10,7 +10,7 @@ export class Block{
     width: number;
     height: number;
 
-    constructor(paper: RaphaelPaper, corner, width, height){
+    constructor(paper: RaphaelPaper, corner: Point, width, height){
         this.element = paper.rect(corner.x, corner.y, width, height);
         this.corner = corner;
         this.fillColor = null;

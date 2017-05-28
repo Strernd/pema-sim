@@ -1,0 +1,14 @@
+#app{
+    width: 900px;
+}
+
+.truck{
+    width: 280px;
+    float: left;
+    margin: 10px;
+    font-family: monospace;
+}
+
+.late{
+    color: red;
+}
