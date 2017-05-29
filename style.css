@@ -3,7 +3,7 @@
 }
 
 #app{
-    width: 1500px;
+    width: 1200px;
 }
 
 #paper{
@@ -12,7 +12,7 @@
 }
 
 #legend{
-    width: 300px;
+    width: 1200px;
     float: left;
 }
 
@@ -41,4 +41,14 @@
 
 .late{
     color: red;
+}
+#truck-info{
+    width: 100%;
+
+}
+
+#truck-info span{
+    width: 100%;
+    float: left;
+    display: block;
 }

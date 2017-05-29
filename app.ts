@@ -22,23 +22,14 @@ $('#play').click(()=> play = true);
 $('#pause').click(()=> play = false);
 $('#skip').click(()=> scene.time+= 50);
 
-
-
-scene.trucks.forEach((truck, index) => {
-    let domEl = $("<div class='truck'></div>");
-    app.append(domEl);
-    truck.setDomElement(domEl);
-    truck.setDomContent();
-    
-});
 window.requestAnimationFrame(step);
-// scene.play();
+
 
 
 const timeline = paper.path("M"+scene.time+",0L"+scene.time+",400");
 timeline.attr("stroke",CFG.COLORS.ORANGE);
 timeline.attr("stroke.width",1);
-const speed = 30;
+const speed = 1000;
 
 let last = 0;
 function step(timestamp) {
@@ -49,11 +40,10 @@ function step(timestamp) {
       if(play){
       scene.advance();
       timeline.attr("path","M"+scene.time+",0L"+scene.time+",400");
-      }
-
       
+      
+      }
     last = timestamp;
-    
   }
 }
 

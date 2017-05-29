@@ -4,14 +4,16 @@ import { Arrow } from './Arrow';
 import { Scenario } from './Scenario';
 import Prob = require('prob.js');
 import Random = require('random-js');
+import * as $ from 'jquery';
 
 
 export class Truck{
+    changed: false;
     dispatched: boolean;
     late: boolean;
     arrived: boolean;
     row: number;
-    scene: Scenario​​;
+    scene: Scenario;
     source : any;
     paper: any;
     color: string;
@@ -30,8 +32,10 @@ export class Truck{
     public delay: number;
     domElement: any;
     slot: Timeslot;
+    force: boolean;
 
     constructor(scene: Scenario, id: number, totalWay: number){
+        this.force = true;
         this.slot = null;
         this.scene = scene;
         this.source = scene.source;
@@ -55,8 +59,19 @@ export class Truck{
         this.arrived = false;
         this.dispatched = false;
         this.late = false;
+        this.changed = false;
         
     }
+
+    public setEvents(){
+        this.arrow.element.click(() => {
+            this.select();
+        });
+        // this.slot.block.element.click(() => {
+        //     this.select();
+        // });
+    }
+
 
     public assign(slot: Timeslot){
         if(this.slot == null){
@@ -66,6 +81,7 @@ export class Truck{
             this.start =  Math.round(this.arrivalPlanned - this.totalWay);
             this.arrivalReal = Math.round(this.start + this.totalWay + this.delay);
             this.latestArrivalForDispatch = Math.round(this.slot.to - CFG.TRUCK_DISPATCH_TIME);
+            this.setEvents();
         }
         else{
             this.slot = slot;
@@ -125,20 +141,31 @@ export class Truck{
         });
     }
 
-    public setDomContent(){
+    public getDetail(){
         let content = "<p>";
-        content += "I"+Math.round(this.id);
-        content += " S"+Math.round(this.start);
-        content += " W"+Math.round(this.totalWay);
-        content += " P"+Math.round(this.arrivalPlanned)+"<br>";
-        content += "R"+Math.round(this.arrivalReal);
-        content += " L"+Math.round(this.latestArrivalForDispatch);
-        content += " D"+Math.round(this.delay);
-        content += " P"+Math.round(this.arrivalPredicted);
-        
+        content += span("id","Truck #",this.id);
+        content += span("start", "Start",this.start);
+        content += span("way","Wegstrecke",this.totalWay);
+        content += span("planned", "Ankunft geplant", this.arrivalPlanned);
+        content += span("real", "Ankunft Ist", this.arrivalReal);
+        content += span("latest", "Ankunft spätestens", this.latestArrivalForDispatch);
+        content += span("predicted", "Ankunft voraussichtlich",this.arrivalPredicted);
+        content += span("delay","Verspätung",this.delay);
         content += "</p>";
-        this.domElement.html(content);
+        return content;
+    }
 
+    public select(){
+        let l = this.scene.selected;
+        if(l !== null){
+            l.arrow.setColor(l.color);
+            l.slot.block.setColor(l.color,CFG.COLORS.BLACK);
+        }
+        this.scene.selected = this;
+        this.arrow.setColor(CFG.COLORS.BLUE);
+        this.slot.block.setColor(CFG.COLORS.BLUE,CFG.COLORS.BLACK);
+        $('#truck-info').html(this.getDetail());
+        
     }
 
     public setArrow(arrow: Arrow){
@@ -164,23 +191,38 @@ export class Truck{
     }
 
     public updateArrow(){
-        let arrow = this.arrow;
-        this.color = CFG.COLORS.GREEN;
-        let x1 = this.arrivalReal;
-        let x2 = this.slot.from;
-        let i = this.row;
-        let y = CFG.TIMESLOT_LEN * 3 + 25 * i;
-        let late = (x1 > this.latestArrivalForDispatch);
-        if (late) this.color = CFG.COLORS.RED;
-        if (this.late) this.color = CFG.COLORS.ORANGE;
-        if (x1 > x2 && x1 < this.latestArrivalForDispatch) x2 = this.latestArrivalForDispatch;
-        if(Math.abs(x1-x2) < 5){
-            x1 -= 5;
-        }
-        arrow.setColor(this.color);
-        arrow.setFrom({x: x1, y});
-        arrow.setTo({x: x2, y});
-        arrow.setWidth(3);
-        this.arrow = arrow;
+            let arrow = this.arrow;
+            this.color = CFG.COLORS.GREEN;
+            let x1 = this.arrivalReal;
+            let x2 = this.slot.from;
+            let y;
+            if (CFG.INDIVIDUAL_ROWS){
+                let i = this.row;
+                y = CFG.TIMESLOT_LEN * 3 + 20 * i;
+            }
+            else{
+                let i = this.id;
+                y = CFG.TIMESLOT_LEN * 3 + 10 * i;
+            }
+            let late = (x1 > this.latestArrivalForDispatch);
+            if (late) this.color = CFG.COLORS.RED;
+            if (this.late) this.color = CFG.COLORS.ORANGE;
+            if (x1 > x2 && x1 < this.latestArrivalForDispatch) x2 = this.latestArrivalForDispatch;
+            if(Math.abs(x1-x2) < 5){
+                x1 -= 5;
+            }
+            if(this.color !== arrow.color || this.force) arrow.setColor(this.color)
+            if(this.force || x1 !== arrow.from.x || y !== arrow.from.y || x2 !== arrow.to.x){
+                arrow.setFrom({x: x1, y});
+                arrow.setTo({x: x2, y});
+            }
+            if(arrow.width !== 3 || this.force) arrow.setWidth(3);
+            this.arrow = arrow;
+            this.force = false;
+
     }
+}
+
+function span(cl: String, content: String, value: any): String{
+    return "<span class='"+cl+"'>"+content+": "+String(value)+"</span>";
 }

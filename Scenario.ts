@@ -8,6 +8,7 @@ import * as $ from 'jquery';
 
 
 export class Scenario{
+    public changed: boolean;
     public source : any;
     public seed : string;
     public paper: any;
@@ -15,19 +16,30 @@ export class Scenario{
     public trucks : Array<Truck>;
     public timeslots : Array<Timeslot>;
     public time: number;
+    public selected: Truck;
 
     constructor(paper, seed){
+        this.changed = false;
         this.seed = seed;
         this.source = (Random.engines.mt19937().seed(this.seed));
         this.paper = paper;
         this.arrowDistributionRows = [[]];
         this.time = 0;
+        this.selected = null;
         this.setupTimeslots();
         this.setupTrucks();
         this.trucksBookSlots();
         this.determineTrucksRow();
-        this.drawTrucks();
-        this.drawBlocks();
+        this.draw();
+
+    }
+
+    public draw(){
+        if(this.changed){
+            this.drawBlocks();
+            this.drawTrucks();
+            this.changed = false;
+        }
 
     }
 
@@ -88,9 +100,10 @@ export class Scenario{
         this.trucks.forEach(t => {
             t.calculatePredictedArrival(this.time);
             t.determineReallocation(this.time);
-            t.setDomContent();
+            // t.setDomContent();
         });
         this.reallocate();
+        // this.trucks.forEach(t => {t.setEvents()});
         
         let trucks = this.trucks.filter(t => t.arrivalReal == this.time);
         if(CFG.DRAWING){
@@ -118,6 +131,7 @@ export class Scenario{
                 return truckArrived && (slotEarlier || change.late);
             });
             if(possibleChangeTrucks.length > 0){
+                this.changed = true;
                 // possibleTrucks.sort((a,b) => b.waitingTime - a.waitingTime);
                 let newTruck = possibleChangeTrucks[0];
                 let oldSlot = newTruck.slot;
@@ -132,8 +146,7 @@ export class Scenario{
 
         });
 
-        this.drawTrucks();
-        this.drawBlocks();
+        this.draw();
         
     }
 

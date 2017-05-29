@@ -13,8 +13,9 @@ export class CFG{
     static TRUCK_SAFETY_START_TIME_MAX = 10;
     static TRUCK_DISPATCH_TIME = 20;
     static TIME_OFFSET = 200;
-    static SEED = 7;
+    static SEED = 5;
     static DRAWING = true;
+    static INDIVIDUAL_ROWS = true;
     static COLORS = {
     GREY: "#9E9E9E",
     LIGHTGREY: "#B0BEC5",
