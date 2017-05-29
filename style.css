@@ -16,6 +16,12 @@
     float: left;
 }
 
+#timer{
+    width: 100%;
+    float: left;
+    height: 20px;
+}
+
 .truck{
     height: 50px;
     width: 300px;
