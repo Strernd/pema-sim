@@ -10,14 +10,20 @@ const source = (Random.engines.mt19937().seed(CFG.SEED));
 export class Scenario{
     public trucks : Array<Truck>;
     public timeslots : Array<Timeslot>;
-    
+    public time: number;
 
     constructor(){
+        this.time = 0;
         this.setupTimeslots();
         this.setupTrucks();
         this.trucksBookSlots();
 
     }
+
+    public advance(){
+        this.time++;
+    }
+
 
     private getNearestFreeTimeslot(at: number){
         const timeslots = this.timeslots.filter(x => x.free);
@@ -48,7 +54,7 @@ export class Scenario{
             let r = fr(source);
             if(r < 0) r = 0;
             r += CFG.TRUCKS_TOTAL_WAY_MIN;
-            let truck = new Truck(r)
+            let truck = new Truck(i+1,r)
             this.trucks.push(truck);
         }
     }

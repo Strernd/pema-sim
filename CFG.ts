@@ -14,6 +14,17 @@ export class CFG{
     static TRUCK_DISPATCH_TIME = 20;
     static TIME_OFFSET = 200;
     static SEED = 2;
+    static COLORS = {
+    GREY: "#9E9E9E",
+    LIGHTGREY: "#B0BEC5",
+    GREEN: "#4CAF50",
+    BLUE: "#2196F3",
+    RED: "#f44336",
+    YELLOW: "#FFEB3B",
+    ORANGE: "#FF9800",
+    BLACK: "#212121"
+}
+
 
     private constructor(){
 

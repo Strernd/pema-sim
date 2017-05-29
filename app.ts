@@ -11,49 +11,20 @@ import * as $ from 'jquery';
 const scene = new Scenario();
 const trucks = scene.trucks;
 
-// $( document ).ready(() => {
-// const app = $('#app');
-// trucks.forEach(truck => {
-//     let content = "<p>";
-//     content += "Start: "+Math.round(truck.start)+"<br>";
-//     content += "SOLL Ankunft : "+Math.round(truck.arrivalPlanned)+"<br>";
-//     content += "IST Ankunft  : "+Math.round(truck.arrivalReal)+"<br>";
-//     content += "Verzgerung : " +Math.round(truck.delay); 
-//     content += "</p>";
-//     let cl = "'truck ";
-//     if (truck.arrivalReal > truck.arrivalPlanned) cl += "late"
-//     cl += "'";
-//     app.append("<div class="+cl+">"+ content +"</div>");
-// });
-
-// });
-
-
-const COLORS = {
-    GREY: "#9E9E9E",
-    LIGHTGREY: "#B0BEC5",
-    GREEN: "#4CAF50",
-    BLUE: "#2196F3",
-    RED: "#f44336",
-    YELLOW: "#FFEB3B",
-    ORANGE: "#FF9800",
-    BLACK: "#212121"
-}
-
-
-
 
 function fn(){
 // Creates canvas 320 × 200 at 10, 50
-const paper = Raphael(10, 10, 1500, 600);
+const paper = Raphael("paper", 1200, 400);
 const width = CFG.TIMESLOT_LEN;
+const app = $('#app');
 
 scene.timeslots.forEach((timeslot) => {
     let block = new Block(paper,{x: timeslot.from, y:0},width,width*2);
-        block.setColor(COLORS.GREEN,COLORS.BLACK);
+        block.setColor(CFG.COLORS.GREEN,CFG.COLORS.BLACK);
     if(timeslot.truck.arrivalReal > timeslot.truck.latestArrivalForDispatch){
-        block.setColor(COLORS.RED,COLORS.BLACK);
+        block.setColor(CFG.COLORS.RED,CFG.COLORS.BLACK);
     }
+    timeslot.setBlock(block);
     
 });
 const truck = scene.trucks;
@@ -84,14 +55,18 @@ function fitInRow(x1,x2){
     return rows.length - 1;
 }
 trucks.forEach((truck, index) => {
+    let domEl = $("<div class='truck'></div>");
+    app.append(domEl);
+    truck.setDomElement(domEl);
+    truck.setDomContent();
     let arrow = new Arrow(paper);
-    arrow.setColor(COLORS.GREEN);
+    arrow.setColor(CFG.COLORS.GREEN);
     let x1 = truck.arrivalReal;
     let x2 = truck.slot.from;
     let i = fitInRow(Math.min(x1,x2),Math.max(x1,x2));
     let y = width * 3 + 25 * i;
     let late = (x1 > truck.latestArrivalForDispatch);
-    if (late) arrow.setColor(COLORS.RED);
+    if (late) arrow.setColor(CFG.COLORS.RED);
     if (x1 > x2 && x1 < truck.latestArrivalForDispatch) x2 = truck.latestArrivalForDispatch;
     if(Math.abs(x1-x2) < 5){
         x1 -= 5;
@@ -99,6 +74,7 @@ trucks.forEach((truck, index) => {
     arrow.setFrom({x: x1, y});
     arrow.setTo({x: x2, y});
     arrow.setWidth(3);
+    truck.setArrow(arrow);
 });
 console.log(rows);
 window.requestAnimationFrame(step);

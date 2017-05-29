@@ -1,12 +1,36 @@
+*{
+    box-sizing: border-box;
+}
+
 #app{
-    width: 900px;
+    width: 1500px;
+}
+
+#paper{
+    width: 1200px;
+    float: left;
+}
+
+#legend{
+    width: 300px;
+    float: left;
 }
 
 .truck{
-    width: 280px;
+    height: 50px;
+    width: 300px;
     float: left;
-    margin: 10px;
+    padding: 3px;
     font-family: monospace;
+    margin-bottom: 1px solid black;
+}
+
+.truck p{
+    margin: 0;
+}
+
+.truck.hovered{
+    border: 1px solid blue;
 }
 
 .late{

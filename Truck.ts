@@ -1,5 +1,7 @@
 import {Timeslot} from './Timeslot';
 import {CFG} from './CFG';
+import { Arrow } from './Arrow';
+
 
 import Prob = require('prob.js');
 import Random = require('random-js');
@@ -7,6 +9,9 @@ import Random = require('random-js');
 const source = (Random.engines.mt19937().seed(CFG.SEED));
 
 export class Truck{
+    colorBefore: string;
+    arrow: any;
+    id: number;
     preferredTime: number;
     realtime: boolean;
     start: number;
@@ -15,9 +20,11 @@ export class Truck{
     arrivalPlanned: number;
     latestArrivalForDispatch: number;
     public delay: number;
+    domElement: any;
     slot: Timeslot;
 
-    constructor(totalWay: number){
+    constructor(id: number, totalWay: number){
+        this.id = id;
         let x = Prob.uniform(0,1)(source);
         this.realtime = false;
         if (x <= CFG.ADOPTION_RATE) this.realtime = true;
@@ -47,5 +54,44 @@ export class Truck{
 
     public calculateDelay(){
 
+    }
+
+    public setDomElement(domElement){
+        this.domElement = domElement;
+        domElement.mouseover(()=>{
+            this.mouseover()
+            domElement.mouseout(()=>{this.mouseout()});
+        });
+    }
+
+    public setDomContent(){
+        let content = "<p>";
+        content += "I"+Math.round(this.id);
+        content += " S"+Math.round(this.start);
+        content += " W"+Math.round(this.totalWay);
+        content += " P"+Math.round(this.arrivalPlanned)+"<br>";
+        content += "R"+Math.round(this.arrivalReal);
+        content += " L"+Math.round(this.latestArrivalForDispatch);
+        content += " D"+Math.round(this.delay);
+        content += "</p>";
+        this.domElement.html(content);
+
+    }
+
+    public setArrow(arrow: Arrow){
+        this.arrow = arrow;
+    }
+
+    private mouseover(){
+        this.domElement.addClass("hovered");
+        this.colorBefore = this.arrow.color;
+        this.arrow.setColor(CFG.COLORS.BLUE);
+        this.slot.block.setColor(CFG.COLORS.BLUE,CFG.COLORS.BLACK);
+    }
+
+    private mouseout(){
+        this.arrow.setColor(this.colorBefore);
+        this.slot.block.setColor(this.colorBefore,CFG.COLORS.BLACK);
+        this.domElement.removeClass("hovered");
     }
 }
