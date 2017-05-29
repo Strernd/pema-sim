@@ -15,11 +15,13 @@ function fn(){
 const paper = Raphael("paper", 1200, 400);
 const width = CFG.TIMESLOT_LEN;
 const app = $('#app');
-const scene = new Scenario(paper);
+const scene = new Scenario(paper,CFG.SEED);
 
 let play = false;
 $('#play').click(()=> play = true);
 $('#pause').click(()=> play = false);
+$('#skip').click(()=> scene.time+= 50);
+
 
 
 scene.trucks.forEach((truck, index) => {
@@ -30,6 +32,7 @@ scene.trucks.forEach((truck, index) => {
     
 });
 window.requestAnimationFrame(step);
+// scene.play();
 
 
 const timeline = paper.path("M"+scene.time+",0L"+scene.time+",400");

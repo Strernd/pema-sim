@@ -3,19 +3,22 @@ import {Timeslot} from './Timeslot';
 import {CFG} from './CFG';
 import Prob = require('prob.js');
 import Random = require('random-js');
-const source = (Random.engines.mt19937().seed(CFG.SEED));
 import * as $ from 'jquery';
 
 
 
 export class Scenario{
+    public source : any;
+    public seed : string;
     public paper: any;
     public arrowDistributionRows : Array<Array<Number>>;
     public trucks : Array<Truck>;
     public timeslots : Array<Timeslot>;
     public time: number;
 
-    constructor(paper){
+    constructor(paper, seed){
+        this.seed = seed;
+        this.source = (Random.engines.mt19937().seed(this.seed));
         this.paper = paper;
         this.arrowDistributionRows = [[]];
         this.time = 0;
@@ -29,14 +32,19 @@ export class Scenario{
     }
 
     public drawBlocks(){
-        this.timeslots.forEach(ts => ts.updateBlock());
+        if(CFG.DRAWING){
+            this.timeslots.forEach(ts => ts.updateBlock());
+        }
     }
 
     public drawTrucks(){
-        this.determineTrucksRow();
-        this.trucks.forEach(t => {
-            t.updateArrow();
-        });
+        if(CFG.DRAWING){
+            this.determineTrucksRow();
+            this.trucks.forEach(t => {
+                t.updateArrow();
+            });
+        }
+     
     }
 
     public determineTrucksRow(){
@@ -76,12 +84,7 @@ export class Scenario{
 
     public advance(){
         this.time++;
-        let unused = this.trucks.reduce((a,x) => {
-            if(x.arrivalReal > x.latestArrivalForDispatch){
-                a += 1;
-            }
-            return a;
-        },0);
+
         this.trucks.forEach(t => {
             t.calculatePredictedArrival(this.time);
             t.determineReallocation(this.time);
@@ -90,33 +93,41 @@ export class Scenario{
         this.reallocate();
         
         let trucks = this.trucks.filter(t => t.arrivalReal == this.time);
-        trucks.forEach(t => console.log("Truck "+t.id+" arrived"));
-        $('#timer').html(String(this.time)+" "+String(unused));
+        if(CFG.DRAWING){
+            let unused = this.trucks.reduce((a,x) => {
+            if(x.arrivalReal > x.latestArrivalForDispatch){
+                a += 1;
+            }
+            return a;
+        },0);
+         $('#timer').html(String(this.time)+" "+String(unused));
+
+        }
         
     }
 
     public reallocate(){
         let needRedraw = [] as Array<Truck>;
-        let futureMissedSlots = this.timeslots.filter(ts => {
-            return (ts.willBeMissed && ts.latest >= this.time)
+        let futureLateTrucks = this.trucks.filter(t => {
+            return (t.arrivalPredicted >= this.time && t.late)
         });
-        futureMissedSlots.forEach(slot => {
-            let possibleTrucks = this.trucks.filter(truck => {
-                let truckArrived = (truck.arrivalPredicted < slot.from)
-                let slotEarlier = (truck.slot.from > slot.from);
-                return truckArrived && (slotEarlier || truck.late);
+        futureLateTrucks.forEach(truck => {
+            let possibleChangeTrucks = this.trucks.filter(change => {
+                let truckArrived = (change.arrivalPredicted < truck.slot.from)
+                let slotEarlier = (change.slot.from > truck.slot.from);
+                return truckArrived && (slotEarlier || change.late);
             });
-            if(possibleTrucks.length > 0){
+            if(possibleChangeTrucks.length > 0){
                 // possibleTrucks.sort((a,b) => b.waitingTime - a.waitingTime);
-                let chosenTruck = possibleTrucks[0];
-                let laterSlot = chosenTruck.slot;
-                let oldTruck = slot.truck;
-                console.log("reassigned "+slot+ " to "+chosenTruck.id);
-                slot.assign(chosenTruck);
-                slot.willBeMissed = false;
-                chosenTruck.assign(slot);
-                laterSlot.assign(oldTruck);
-                oldTruck.assign(laterSlot);
+                let newTruck = possibleChangeTrucks[0];
+                let oldSlot = newTruck.slot;
+                let oldTruck = truck;
+                let newSlot = truck.slot;
+                newSlot.assign(newTruck);
+                newSlot.willBeMissed = false;
+                newTruck.assign(newSlot);
+                oldSlot.assign(oldTruck);
+                oldTruck.assign(oldSlot);
             }
 
         });
@@ -153,7 +164,7 @@ export class Scenario{
         const fr = Prob.normal(CFG.TRUCKS_TOTAL_WAY_MU, CFG.TRUCKS_TOTAL_WAY_SIGMA);
         this.trucks = [];
         for (let i = 0; i < CFG.QUANT_TRUCKS; i++){
-            let r = fr(source);
+            let r = fr(this.source);
             if(r < 0) r = 0;
             r += CFG.TRUCKS_TOTAL_WAY_MIN;
             let truck = new Truck(this,i+1,r)
@@ -169,6 +180,30 @@ export class Scenario{
             timeslot.setPaper(this.paper);
             this.timeslots.push(timeslot);
         }
+    }
+
+    public play(){
+        let unused = this.trucks.reduce((a,x) => {
+            if(x.arrivalReal > x.latestArrivalForDispatch){
+                a += 1;
+            }
+            return a;
+        },0);
+        console.log("unused before: "+unused);
+        const arr = this.trucks.map(t => t.arrivalReal);
+        const max = Math.max(...arr);
+        while(this.time < max){
+            this.advance();
+        }
+        unused = this.trucks.reduce((a,x) => {
+            if(x.arrivalReal > x.latestArrivalForDispatch){
+                a += 1;
+            }
+            return a;
+        },0);
+        console.log("unused after: "+unused);
+        
+    
     }
 
 

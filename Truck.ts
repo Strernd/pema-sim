@@ -2,13 +2,9 @@ import {Timeslot} from './Timeslot';
 import {CFG} from './CFG';
 import { Arrow } from './Arrow';
 import { Scenario } from './Scenario';
-
-
-
 import Prob = require('prob.js');
 import Random = require('random-js');
 
-const source = (Random.engines.mt19937().seed(CFG.SEED));
 
 export class Truck{
     dispatched: boolean;
@@ -16,6 +12,7 @@ export class Truck{
     arrived: boolean;
     row: number;
     scene: Scenario​​;
+    source : any;
     paper: any;
     color: string;
     arrow: any;
@@ -37,14 +34,15 @@ export class Truck{
     constructor(scene: Scenario, id: number, totalWay: number){
         this.slot = null;
         this.scene = scene;
+        this.source = scene.source;
         this.id = id;
-        let x = Prob.uniform(0,1)(source);
+        let x = Prob.uniform(0,1)(this.source);
         this.adoptsRealtime = false;
         if (x <= CFG.ADOPTION_RATE) this.adoptsRealtime = true;
         this.totalWay = Math.round(totalWay);
         let fr = Prob.exponential(CFG.TRUCK_DELAY_LAMBDA);
-        let r = fr(source);
-        let sign = Prob.uniform(0,1)(source);
+        let r = fr(this.source);
+        let sign = Prob.uniform(0,1)(this.source);
         if(sign < CFG.LATE_EARLY_DIST){
             sign = -1;
         }
@@ -53,7 +51,7 @@ export class Truck{
         }
         this.delay = Math.round(sign * r * CFG.DELAY_FACTOR * this.totalWay);
         fr = Prob.uniform(0,CFG.QUANT_TRUCKS*CFG.TIMESLOT_LEN);
-        this.preferredTime = Math.round(fr(source));
+        this.preferredTime = Math.round(fr(this.source));
         this.arrived = false;
         this.dispatched = false;
         this.late = false;
@@ -63,7 +61,7 @@ export class Truck{
     public assign(slot: Timeslot){
         if(this.slot == null){
             this.slot = slot;
-            const safetytime = Prob.uniform(CFG.TRUCK_SAFETY_START_TIME_MIN,CFG.TRUCK_SAFETY_START_TIME_MAX)(source);
+            const safetytime = Prob.uniform(CFG.TRUCK_SAFETY_START_TIME_MIN,CFG.TRUCK_SAFETY_START_TIME_MAX)(this.source);
             this.arrivalPlanned = Math.round(this.slot.from - safetytime);
             this.start =  Math.round(this.arrivalPlanned - this.totalWay);
             this.arrivalReal = Math.round(this.start + this.totalWay + this.delay);
@@ -97,14 +95,14 @@ export class Truck{
 
     public determineReallocation(t: Number){
         if(!this.late && (this.arrivalPredicted > this.latestArrivalForDispatch)){
-            console.log("Truck "+this.id+ " will be late");
+            // console.log("Truck "+this.id+ " will be late");
             this.late = true;
             this.slot.willBeMissed = true;
         }
         if(this.late && (this.arrivalPredicted <= this.latestArrivalForDispatch)){
             this.late = false;
             this.slot.willBeMissed = false;
-            console.log("Truck "+this.id+ " will not be late any more");
+            // console.log("Truck "+this.id+ " will not be late any more");
         }
         if(t >= this.arrivalReal){
             this.arrived = true;

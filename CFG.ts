@@ -1,6 +1,6 @@
 export class CFG{
     static TRUCK_DELAY_LAMBDA = 1;
-    static DELAY_FACTOR = 0.01 * 25;
+    static DELAY_FACTOR = 0.01 * 15;
     static LATE_EARLY_DIST = 0.7; // 0.3 => 30% early 70% late
     static RUNS = 1;
     static QUANT_TRUCKS = 30;
@@ -13,7 +13,8 @@ export class CFG{
     static TRUCK_SAFETY_START_TIME_MAX = 10;
     static TRUCK_DISPATCH_TIME = 20;
     static TIME_OFFSET = 200;
-    static SEED = 6;
+    static SEED = 7;
+    static DRAWING = true;
     static COLORS = {
     GREY: "#9E9E9E",
     LIGHTGREY: "#B0BEC5",

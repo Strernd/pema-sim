@@ -31,7 +31,10 @@ export class Timeslot{
 
     public setPaper(paper){
         this.paper = paper;
-        this.block = new Block(paper,{x: this.from, y:0},CFG.TIMESLOT_LEN,CFG.TIMESLOT_LEN*2);
+        if(CFG.DRAWING){
+            this.block = new Block(paper,{x: this.from, y:0},CFG.TIMESLOT_LEN,CFG.TIMESLOT_LEN*2);
+        }
+        
     }
 
     public updateBlock(){
