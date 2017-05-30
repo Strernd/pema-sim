@@ -35,10 +35,10 @@ export class Scenario{
     }
 
     public draw(){
-        if(this.changed){
-            this.drawBlocks();
+        if(this.time == 0 || this.changed){
             this.drawTrucks();
-            this.changed = false;
+            this.drawBlocks();
+            this.changed = true;
         }
 
     }

@@ -101,7 +101,7 @@ export class Truck{
         if(t > this.start){
             let relWay = (t-this.start) / (this.arrivalReal-this.start);
             let knownDelay = relWay * this.delay;
-            this.arrivalPredicted = this.start + this.totalWay + knownDelay;
+            this.arrivalPredicted = Math.round(this.start + this.totalWay + knownDelay);
         }
         if(t > this.arrivalReal){
             this.arrivalPredicted = this.arrivalReal;
@@ -151,6 +151,9 @@ export class Truck{
         content += span("latest", "Ankunft spätestens", this.latestArrivalForDispatch);
         content += span("predicted", "Ankunft voraussichtlich",this.arrivalPredicted);
         content += span("delay","Verspätung",this.delay);
+        content += span("late","Known Late",this.late);
+        content += span("late","Late",(this.arrivalReal > this.latestArrivalForDispatch));
+        
         content += "</p>";
         return content;
     }
@@ -211,12 +214,12 @@ export class Truck{
             if(Math.abs(x1-x2) < 5){
                 x1 -= 5;
             }
-            if(this.color !== arrow.color || this.force) arrow.setColor(this.color)
+            if(this.force || this.color !== arrow.color) arrow.setColor(this.color)
             if(this.force || x1 !== arrow.from.x || y !== arrow.from.y || x2 !== arrow.to.x){
                 arrow.setFrom({x: x1, y});
                 arrow.setTo({x: x2, y});
             }
-            if(arrow.width !== 3 || this.force) arrow.setWidth(3);
+            if(this.force || arrow.width !== 3) arrow.setWidth(3);
             this.arrow = arrow;
             this.force = false;
 

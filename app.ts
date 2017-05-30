@@ -5,7 +5,6 @@ import { Block } from './Block';
 import { Truck } from './Truck';
 import { Scenario } from './Scenario';
 import { CFG } from './CFG';
-
 import * as $ from 'jquery';
 
 
@@ -35,13 +34,10 @@ let last = 0;
 function step(timestamp) {
   let delta = timestamp - last;
     window.requestAnimationFrame(step);
-  
   if (delta > (1000/speed)) {
       if(play){
       scene.advance();
       timeline.attr("path","M"+scene.time+",0L"+scene.time+",400");
-      
-      
       }
     last = timestamp;
   }
