@@ -11,7 +11,7 @@ import * as $ from 'jquery';
 
 function fn(){
 // Creates canvas 320 × 200 at 10, 50
-const paper = Raphael("paper", 1200, 400);
+const paper = Raphael("paper", 2000, 1000);
 const width = CFG.TIMESLOT_LEN;
 const app = $('#app');
 const scene = new Scenario(paper,CFG.SEED);

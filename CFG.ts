@@ -4,16 +4,16 @@ export class CFG{
     static LATE_EARLY_DIST = 0.7; // 0.3 => 30% early 70% late
     static RUNS = 1;
     static QUANT_TRUCKS = 30;
-    static TIMESLOT_LEN = 30;
+    static TIMESLOT_LEN = 50;
     static TRUCKS_TOTAL_WAY_MU = 500;
     static TRUCKS_TOTAL_WAY_SIGMA = 250;
     static TRUCKS_TOTAL_WAY_MIN = 100;
     static ADOPTION_RATE = 1;
     static TRUCK_SAFETY_START_TIME_MIN = 5;
     static TRUCK_SAFETY_START_TIME_MAX = 10;
-    static TRUCK_DISPATCH_TIME = 20;
+    static TRUCK_DISPATCH_TIME = 40;
     static TIME_OFFSET = 200;
-    static SEED = 5;
+    static SEED = 10;
     static DRAWING = true;
     static INDIVIDUAL_ROWS = true;
     static COLORS = {
