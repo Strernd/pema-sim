@@ -9,15 +9,18 @@ export class CFG{
     static TRUCKS_TOTAL_WAY_MU = 500;
     static TRUCKS_TOTAL_WAY_SIGMA = 250;
     static TRUCKS_TOTAL_WAY_MIN = 100;
-    static ADOPTION_RATE = 1;
+    static ADOPTION_RATE = 0;
     static TRUCK_SAFETY_START_TIME_MIN = 5;
     static TRUCK_SAFETY_START_TIME_MAX = 10;
     static TRUCK_DISPATCH_TIME = 40;
     static TIME_OFFSET = 200;
-    static SEED = 11;
+    static SEED = 6;
     static DRAWING = true;
     static INDIVIDUAL_ROWS = true;
     static SCALE = 0.8;
+    static ENABLE_SWAP = true;
+    static ENABLE_PULL = true;
+    static ENABLE_PUSH = true;
     static COLORS = {
     GREY: "#9E9E9E",
     LIGHTGREY: "#B0BEC5",

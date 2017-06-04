@@ -17,6 +17,7 @@ export class Scenario{
     public timeslots : Array<Timeslot>;
     public time: number;
     public selected: Truck;
+    public eventLog: Array<String>;
 
     constructor(paper, seed){
         this.changed = false;
@@ -26,12 +27,17 @@ export class Scenario{
         this.arrowDistributionRows = [[]];
         this.time = 0;
         this.selected = null;
+        this.eventLog = [];
         this.setupTimeslots();
         this.setupTrucks();
         this.trucksBookSlots();
         this.determineTrucksRow();
         this.draw();
+    }
 
+    public log(event: String){
+        this.eventLog.push(event);
+        $('#log').append("<p>"+event+"</p>");
     }
 
     public draw(){
@@ -102,9 +108,12 @@ export class Scenario{
             t.determineReallocation(this.time);
             // t.setDomContent();
         });
-        this.reallocate();
-        this.moveLateTrucksToFreeSlots();
-        this.moveEarlyTrucksToFreeSlots();
+        
+        if(CFG.ENABLE_SWAP) this.swap();
+        if(CFG.ENABLE_PUSH) this.push();
+        if(CFG.ENABLE_PULL) this.pull();
+        
+        
         
         this.draw();
         // this.trucks.forEach(t => {t.setEvents()});
@@ -123,36 +132,15 @@ export class Scenario{
         
     }
 
-    public reallocate2(){
-        let slots = this.getSlotsWillBeMissedAfterNow();
-        slots.forEach(s => {
-            if(s.truck !== null) s.truck.unassign();
-            s.unassign(); 
-        });
-        let trucks = this.getUnassignedTrucks();
-        trucks.forEach(truck => {
-            slots = this.getUnassignedSlotsAfterNow();
-            slots = slots.filter(slot => {
-                return (slot.from > truck.arrivalPredicted);
-            })
-            if(slots.length > 0){
-                let slot = slots[0];
-                truck.assign(slot);
-                slot.assign(truck);
-            }
-        });
-        this.draw();
-
-    }
-
-    public moveLateTrucksToFreeSlots(){
-        let trucks = this.getLateTrucksAfterNow();
+    public push(){
+        const trucks = this.trucks.filter(t => t.late);
         trucks.forEach(truck => {
             let slots = this.timeslots.filter(s => {
                 return (s.from > truck.arrivalPredicted && s.truck === null);
             });
             if(slots.length > 0){
                 let slot = slots[0];
+                this.log("PUSH Time:"+ this.time+" - Truck #"+truck.id+" new slot "+slot.from+"-"+slot.to+" Free Slot: "+truck.slot.from+"-"+truck.slot.to);
                 truck.slot.unassign();
                 truck.assign(slot);
                 slot.assign(truck);
@@ -160,21 +148,19 @@ export class Scenario{
         })
     }
 
-    public moveEarlyTrucksToFreeSlots(){
-        const cautionTime = 0;
-        let trucks = this.trucks.filter(t => {
-            return (t.arrivalPredicted + cautionTime < t.slot.from && t.arrivalPredicted > this.time);
-        });
+    public pull(){
+        let trucks = this.trucks;
         trucks.forEach(truck => {
             let slots = this.timeslots.filter(s => {
                 let unassigned = (s.truck === null);
                 let earlier = (s.from < truck.slot.from)
-                let future = (s.from > this.time)
-                let truckArrived = (truck.arrivalPredicted < s.from)
+                let future = (s.latest >= this.time)
+                let truckArrived = (truck.arrivalPredicted <= s.latest)
                 return (unassigned && earlier && future && truckArrived);
             });
             if(slots.length > 0){
                 let slot = slots[0];
+                this.log("PULL Time:"+ this.time+" - Truck #"+truck.id+" new slot "+slot.from+"-"+slot.to+" Free Slot: "+truck.slot.from+"-"+truck.slot.to);
                 truck.slot.unassign();
                 truck.assign(slot);
                 slot.assign(truck);
@@ -182,7 +168,7 @@ export class Scenario{
         });
     }
 
-    public reallocate(){
+    public swap(){
         let slots = this.getSlotsWillBeMissedAfterNow();
         slots.forEach(slot => {
             let trucks = this.getExchangeTrucksForSlot(slot);
@@ -199,23 +185,7 @@ export class Scenario{
         });
     }
 
-    private getLateTrucksAfterNow(){
-        return this.trucks.filter(t => {
-            return (t.late && t.arrivalPredicted > this.time);
-        })
-    }
 
-    private getUnassignedTrucks(){
-        return this.trucks.filter(t => {
-            return (t.slot === null);
-        })
-    }
-
-    private getUnassignedSlotsAfterNow(){
-        return this.timeslots.filter(s => {
-            return (s.truck === null && s.from > this.time);
-        })
-    }
 
     private getExchangeTrucksForSlot(slot){
         return this.trucks.filter(truck => {

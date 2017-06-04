@@ -97,6 +97,9 @@ export class Truck{
     public calculatePredictedArrival(t: number){
         if(!this.adoptsRealtime){
             this.arrivalPredicted = this.slot.from;
+            if(this.scene.time > this.arrivalReal){
+                this.arrivalPredicted = this.arrivalReal;
+            }
             return this.arrivalPredicted;            
         }
         if(t <= this.start){
@@ -114,15 +117,21 @@ export class Truck{
     }
 
     public determineReallocation(t: Number){
-        if(!this.late && (this.arrivalPredicted > this.latestArrivalForDispatch)){
-            // console.log("Truck "+this.id+ " will be late");
-            this.late = true;
-            this.slot.willBeMissed = true;
+        let predictedLaterThanLatest = (this.arrivalPredicted > this.latestArrivalForDispatch);
+        let timeAfterLatest = (this.scene.time > this.latestArrivalForDispatch );
+        let trueLate = (this.arrivalReal > this.latestArrivalForDispatch);
+        if(!this.late){
+            if (predictedLaterThanLatest || (timeAfterLatest && trueLate)){
+                this.late = true;
+                this.slot.willBeMissed = true;
+            }
         }
-        if(this.late && (this.arrivalPredicted <= this.latestArrivalForDispatch)){
-            this.late = false;
-            this.slot.willBeMissed = false;
-            // console.log("Truck "+this.id+ " will not be late any more");
+        if(this.late){
+            if(!predictedLaterThanLatest && !(timeAfterLatest && trueLate)){
+                this.late = false;
+                this.slot.willBeMissed = false;
+                // console.log("Truck "+this.id+ " will not be late any more");
+            }
         }
         if(t >= this.arrivalReal){
             this.arrived = true;

@@ -7,14 +7,26 @@
 }
 
 #paper{
-    width: 1200px;
     float: left;
 }
 
 #legend{
-    width: 1200px;
+    width: 400px;
     float: left;
 }
+
+#log{
+    width: 700px;
+    margin-left: 100px;
+    float: left;
+}
+#log p{
+    width: 100%;
+    float: left;
+    margin: 0;
+    padding: 2px;
+}
+
 
 #timer{
     width: 100%;

@@ -15,12 +15,13 @@ const paper = Raphael("paper", (CFG.QUANT_TIMESLOTS * CFG.TIMESLOT_LEN  + 250 ) 
 const width = CFG.TIMESLOT_LEN;
 const app = $('#app');
 const scene = new Scenario(paper,CFG.SEED);
-
 let play = false;
-$('#play').click(()=> play = true);
-$('#pause').click(()=> play = false);
-$('#skip').click(()=> scene.time+= 50);
 
+$(document).keypress(function(e){
+   if(e.keyCode === 0 || e.keyCode === 32){
+     play = !play;
+   }
+   });
 window.requestAnimationFrame(step);
 
 
@@ -31,6 +32,7 @@ timeline.attr("stroke.width",1);
 const speed = 1000;
 
 let last = 0;
+const latest = CFG.TIME_OFFSET + CFG.TIMESLOT_LEN * CFG.QUANT_TIMESLOTS;
 function step(timestamp) {
   let delta = timestamp - last;
     window.requestAnimationFrame(step);
@@ -38,6 +40,7 @@ function step(timestamp) {
       if(play){
       scene.advance();
       timeline.attr("path","M"+scene.time*CFG.SCALE+",0L"+scene.time*CFG.SCALE+",400");
+      if(scene.time > latest) { play = false};
       }
     last = timestamp;
   }
