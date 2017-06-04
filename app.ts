@@ -18,6 +18,7 @@ const scene = new Scenario(paper,CFG.SEED);
 let play = false;
 
 $(document).keypress(function(e){
+  e.preventDefault();
    if(e.keyCode === 0 || e.keyCode === 32){
      play = !play;
    }

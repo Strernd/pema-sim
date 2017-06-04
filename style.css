@@ -1,6 +1,9 @@
 *{
     box-sizing: border-box;
 }
+body{
+    margin: 10px;
+}
 
 #app{
     width: 1200px;
@@ -16,15 +19,56 @@
 }
 
 #log{
-    width: 700px;
+    width: 400px;
     margin-left: 100px;
     float: left;
 }
-#log p{
+#log .row{
+    background-color: #bdbdbd;
+    overflow: hidden;
     width: 100%;
+    margin: 5px;
     float: left;
-    margin: 0;
-    padding: 2px;
+    padding: 7px;
+}
+
+#log .row .time{
+background-color: #29b6f6;
+}
+
+#log .row .truck{
+background-color: #29b6f6;
+}
+
+#log .row .push{
+background-color: #ab47bc;
+}
+
+#log .row .pull{
+background-color: #ffa726;
+}
+
+#log .row .swap{
+background-color: #26a69a;
+}
+
+#log .row span{
+    padding: 5px;
+    margin: 2px;
+}
+
+span.timeslot-old{
+    background-color: #ef5350;
+}
+
+span.timeslot-new{
+    background-color: #66bb6a;
+}
+
+#kpis{
+    width: 400px;
+    float: left;
+    margin-left: 50px;
 }
 
 
@@ -34,7 +78,7 @@
     height: 20px;
 }
 
-.truck{
+#truck-info .truck{
     height: 50px;
     width: 300px;
     float: left;
@@ -43,15 +87,15 @@
     margin-bottom: 1px solid black;
 }
 
-.truck p{
+#truck-info .truck p{
     margin: 0;
 }
 
-.truck.hovered{
+#truck-info .truck.hovered{
     border: 1px solid blue;
 }
 
-.late{
+#truck-info .late{
     color: red;
 }
 #truck-info{

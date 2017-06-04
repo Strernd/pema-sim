@@ -17,7 +17,8 @@ export class Scenario{
     public timeslots : Array<Timeslot>;
     public time: number;
     public selected: Truck;
-    public eventLog: Array<String>;
+    public eventLog;
+    public KPIs;
 
     constructor(paper, seed){
         this.changed = false;
@@ -28,6 +29,19 @@ export class Scenario{
         this.time = 0;
         this.selected = null;
         this.eventLog = [];
+        this.KPIs = {
+            truckerWaitingTimeIfMissed: null,
+            missedSlots: null,
+            unusedSlots: null,
+            earlyTruckerWaitingTime: null,
+            truckerWaitingTime: null,
+            scenarioTime: null,
+            pushMoves: null,
+            pullMoves: null,
+            swaps: null,
+            totalReschedulings: null,
+            savedTime: null
+        };
         this.setupTimeslots();
         this.setupTrucks();
         this.trucksBookSlots();
@@ -35,9 +49,17 @@ export class Scenario{
         this.draw();
     }
 
-    public log(event: String){
-        this.eventLog.push(event);
-        $('#log').append("<p>"+event+"</p>");
+    public log(event, truck, from, to){
+        let content = '';
+        content += '<div class="row">';
+        content += '<span class="'+event+'">'+event+'</span>';
+        content += '<span class="time">'+this.time+'</span>';
+        content += '<span class="truck">Truck #'+truck+'</span>';
+        content += '<span class="timeslot timeslot-old">'+from.from+'-'+from.to+'</span>';
+        content += '<span class="timeslot timeslot-new">'+to.from+'-'+to.to+'</span>';
+        content += '</div>';
+        this.eventLog.push([event,truck,from,to]);
+        $('#log').prepend(content);
     }
 
     public draw(){
@@ -68,6 +90,7 @@ export class Scenario{
     public determineTrucksRow(){
         this.arrowDistributionRows = [[]];
         let trucks = this.trucks;
+        trucks.sort((a,b) => a.id - b.id);
         trucks.sort((a,b) => {
             return Math.min(a.arrivalReal, a.slot.from) - Math.min(b.arrivalReal,b.slot.from);
         });
@@ -100,12 +123,39 @@ export class Scenario{
         return this.arrowDistributionRows.length - 1;
 }
 
+    private calculateKPIs(){
+        this.KPIs.missedSlots = this.trucks.reduce((a,x) => {
+            if(x.arrivalReal > x.latestArrivalForDispatch) a++;
+            return a;
+        },0);
+        this.KPIs.unusedSlots = this.timeslots.length - this.trucks.length;
+        this.KPIs.truckerWaitingTime = Math.round(this.trucks.reduce((a,x) => {
+            a += x.waitingTime;
+            return a;
+        },0) / this.trucks.length);
+        let initiallyInTimeTrucks = this.trucks.filter(x => !x.initiallyLate);
+        this.KPIs.earlyTruckerWaitingTime = Math.round(initiallyInTimeTrucks
+        .reduce((a,x) => {
+            a += x.waitingTime;
+            return a;
+        },0) / initiallyInTimeTrucks.length);
+    }
+
+    private displayKPIs(){
+        let content = "";
+        for(let kpi in this.KPIs){
+            let value = this.KPIs[kpi];
+            content += '<p>'+kpi+': '+value+'</p>';
+        }
+        $('#kpis').html(content);
+    }
+
     public advance(){
         this.time++;
 
         this.trucks.forEach(t => {
             t.calculatePredictedArrival(this.time);
-            t.determineReallocation(this.time);
+            t.calculateProperties();
             // t.setDomContent();
         });
         
@@ -113,20 +163,12 @@ export class Scenario{
         if(CFG.ENABLE_PUSH) this.push();
         if(CFG.ENABLE_PULL) this.pull();
         
-        
-        
+        this.calculateKPIs();
+        this.displayKPIs();
         this.draw();
-        // this.trucks.forEach(t => {t.setEvents()});
         
-        let trucks = this.trucks.filter(t => t.arrivalReal == this.time);
         if(CFG.DRAWING){
-            let unused = this.trucks.reduce((a,x) => {
-            if(x.arrivalReal > x.latestArrivalForDispatch){
-                a += 1;
-            }
-            return a;
-        },0);
-         $('#timer').html(String(this.time)+" "+String(unused));
+         $('#timer').html(String(this.time));
 
         }
         
@@ -140,7 +182,7 @@ export class Scenario{
             });
             if(slots.length > 0){
                 let slot = slots[0];
-                this.log("PUSH Time:"+ this.time+" - Truck #"+truck.id+" new slot "+slot.from+"-"+slot.to+" Free Slot: "+truck.slot.from+"-"+truck.slot.to);
+                this.log("push",truck.id,truck.slot,slot);
                 truck.slot.unassign();
                 truck.assign(slot);
                 slot.assign(truck);
@@ -149,7 +191,9 @@ export class Scenario{
     }
 
     public pull(){
-        let trucks = this.trucks;
+        let trucks = this.trucks.filter(t => {
+            return (t.arrivalReal <= this.time);
+        });
         trucks.forEach(truck => {
             let slots = this.timeslots.filter(s => {
                 let unassigned = (s.truck === null);
@@ -160,7 +204,7 @@ export class Scenario{
             });
             if(slots.length > 0){
                 let slot = slots[0];
-                this.log("PULL Time:"+ this.time+" - Truck #"+truck.id+" new slot "+slot.from+"-"+slot.to+" Free Slot: "+truck.slot.from+"-"+truck.slot.to);
+                this.log("pull",truck.id,truck.slot,slot);
                 truck.slot.unassign();
                 truck.assign(slot);
                 slot.assign(truck);
@@ -177,6 +221,8 @@ export class Scenario{
                 let truck = trucks[0];
                 let tempSlot = truck.slot;
                 let tempTruck = slot.truck;
+                this.log("swap",truck.id,truck.slot,slot);
+                this.log("swap",slot.truck.id,slot,truck.slot);
                 truck.assign(slot);
                 slot.assign(truck);
                 tempTruck.assign(tempSlot);

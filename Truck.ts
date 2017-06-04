@@ -33,10 +33,13 @@ export class Truck{
     domElement: any;
     slot: Timeslot;
     force: boolean;
+    bookedSlot: Timeslot;
+    initiallyLate: boolean;
 
     constructor(scene: Scenario, id: number, totalWay: number){
         this.force = true;
         this.slot = null;
+        this.bookedSlot = null;
         this.scene = scene;
         this.source = scene.source;
         this.id = id;
@@ -44,17 +47,25 @@ export class Truck{
         this.adoptsRealtime = false;
         if (x <= CFG.ADOPTION_RATE) this.adoptsRealtime = true;
         this.totalWay = Math.round(totalWay);
-        let fr = Prob.exponential(CFG.TRUCK_DELAY_LAMBDA);
-        let r = fr(this.source);
-        let sign = Prob.uniform(0,1)(this.source);
-        if(sign < CFG.LATE_EARLY_DIST){
-            sign = -1;
+        if(CFG.TRUCK_DELAY_EXPT){
+            let fr = Prob.exponential(CFG.TRUCK_DELAY_LAMBDA);
+            let r = fr(this.source);
+            let sign = Prob.uniform(0,1)(this.source);
+            if(sign < CFG.LATE_EARLY_DIST){
+                sign = -1;
+            }
+            else{
+                sign = 1;
+            }
+            this.delay = Math.round(sign * r * CFG.DELAY_FACTOR * this.totalWay);
         }
         else{
-            sign = 1;
+            let fr = Prob.normal(CFG.TRUCK_DELAY_MU,CFG.TRUCK_DELAY_SIGMA);
+            this.delay = Math.round(fr(this.source) * CFG.DELAY_FACTOR * this.totalWay)
+            
         }
-        this.delay = Math.round(sign * r * CFG.DELAY_FACTOR * this.totalWay);
-        fr = Prob.uniform(0,CFG.QUANT_TRUCKS*CFG.TIMESLOT_LEN);
+
+        let fr = Prob.uniform(0,CFG.QUANT_TRUCKS*CFG.TIMESLOT_LEN);
         this.preferredTime = Math.round(fr(this.source));
         this.arrived = false;
         this.dispatched = false;
@@ -67,9 +78,6 @@ export class Truck{
         this.arrow.element.click(() => {
             this.select();
         });
-        // this.slot.block.element.click(() => {
-        //     this.select();
-        // });
     }
 
 
@@ -81,11 +89,32 @@ export class Truck{
             this.start =  Math.round(this.arrivalPlanned - this.totalWay);
             this.arrivalReal = Math.round(this.start + this.totalWay + this.delay);
             this.latestArrivalForDispatch = Math.round(this.slot.to - CFG.TRUCK_DISPATCH_TIME);
+            this.initiallyLate = (this.arrivalReal > this.latestArrivalForDispatch);
             this.setEvents();
         }
         else{
             this.slot = slot;
             this.latestArrivalForDispatch = Math.round(this.slot.to - CFG.TRUCK_DISPATCH_TIME);
+
+        }
+        if(this.bookedSlot === null) this.bookedSlot = slot;
+        this.calculateWaitingTime();
+    }
+
+    private calculateWaitingTime(){
+        if(this.arrivalReal <= this.slot.from) {
+            // Before Slot begins
+            this.waitingTime = this.slot.from - this.arrivalReal;
+        }
+        else{
+            if(this.arrivalReal <= this.slot.latest){
+                // After slot begins but still in time for dispatching
+                this.waitingTime = 0;
+            }
+            else{
+                // Missed slot
+                this.waitingTime = (CFG.TIME_OFFSET + CFG.QUANT_TIMESLOTS * CFG.TIMESLOT_LEN) - this.arrivalReal;
+            }
         }
 
     }
@@ -116,7 +145,7 @@ export class Truck{
         return this.arrivalPredicted;
     }
 
-    public determineReallocation(t: Number){
+    public calculateProperties(){
         let predictedLaterThanLatest = (this.arrivalPredicted > this.latestArrivalForDispatch);
         let timeAfterLatest = (this.scene.time > this.latestArrivalForDispatch );
         let trueLate = (this.arrivalReal > this.latestArrivalForDispatch);
@@ -133,18 +162,14 @@ export class Truck{
                 // console.log("Truck "+this.id+ " will not be late any more");
             }
         }
-        if(t >= this.arrivalReal){
+        if(this.scene.time >= this.arrivalReal){
             this.arrived = true;
         }
         if(!this.late && this.arrived){
             this.dispatched = true;
         }
-        // this.waitingTime = this.slot.from - this.arrivalPredicted;
-        // if(this.waitingTime < 0){
-        //     this.waitingTime = Number.MAX_VALUE;
-        // }
-    }
 
+    }
 
     public setDomElement(domElement){
         this.domElement = domElement;
@@ -164,6 +189,7 @@ export class Truck{
         content += span("latest", "Ankunft spätestens", this.latestArrivalForDispatch);
         content += span("predicted", "Ankunft voraussichtlich",this.arrivalPredicted);
         content += span("delay","Verspätung",this.delay);
+        content += span("waiting","Wartezeit",this.waitingTime);
         content += span("late","Known Late",this.late);
         content += span("late","Late",(this.arrivalReal > this.latestArrivalForDispatch));
         
