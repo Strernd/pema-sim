@@ -3,7 +3,8 @@ export class CFG{
     static DELAY_FACTOR = 0.01 * 15;
     static LATE_EARLY_DIST = 0.7; // 0.3 => 30% early 70% late
     static RUNS = 1;
-    static QUANT_TRUCKS = 30;
+    static QUANT_TIMESLOTS = 30;
+    static QUANT_TRUCKS = 20;
     static TIMESLOT_LEN = 50;
     static TRUCKS_TOTAL_WAY_MU = 500;
     static TRUCKS_TOTAL_WAY_SIGMA = 250;
@@ -13,9 +14,10 @@ export class CFG{
     static TRUCK_SAFETY_START_TIME_MAX = 10;
     static TRUCK_DISPATCH_TIME = 40;
     static TIME_OFFSET = 200;
-    static SEED = 10;
+    static SEED = 11;
     static DRAWING = true;
     static INDIVIDUAL_ROWS = true;
+    static SCALE = 0.8;
     static COLORS = {
     GREY: "#9E9E9E",
     LIGHTGREY: "#B0BEC5",
@@ -24,6 +26,7 @@ export class CFG{
     RED: "#f44336",
     YELLOW: "#FFEB3B",
     ORANGE: "#FF9800",
+    WHITE: "#FFFFFF",
     BLACK: "#212121"
 }
 

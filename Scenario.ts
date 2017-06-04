@@ -103,6 +103,10 @@ export class Scenario{
             // t.setDomContent();
         });
         this.reallocate();
+        this.moveLateTrucksToFreeSlots();
+        this.moveEarlyTrucksToFreeSlots();
+        
+        this.draw();
         // this.trucks.forEach(t => {t.setEvents()});
         
         let trucks = this.trucks.filter(t => t.arrivalReal == this.time);
@@ -119,35 +123,114 @@ export class Scenario{
         
     }
 
-    public reallocate(){
-        let needRedraw = [] as Array<Truck>;
-        let futureLateTrucks = this.trucks.filter(t => {
-            return (t.arrivalPredicted >= this.time && t.late)
+    public reallocate2(){
+        let slots = this.getSlotsWillBeMissedAfterNow();
+        slots.forEach(s => {
+            if(s.truck !== null) s.truck.unassign();
+            s.unassign(); 
         });
-        futureLateTrucks.forEach(truck => {
-            let possibleChangeTrucks = this.trucks.filter(change => {
-                let truckArrived = (change.arrivalPredicted < truck.slot.from)
-                let slotEarlier = (change.slot.from > truck.slot.from);
-                return truckArrived && (slotEarlier || change.late);
-            });
-            if(possibleChangeTrucks.length > 0){
-                this.changed = true;
-                // possibleTrucks.sort((a,b) => b.waitingTime - a.waitingTime);
-                let newTruck = possibleChangeTrucks[0];
-                let oldSlot = newTruck.slot;
-                let oldTruck = truck;
-                let newSlot = truck.slot;
-                newSlot.assign(newTruck);
-                newSlot.willBeMissed = false;
-                newTruck.assign(newSlot);
-                oldSlot.assign(oldTruck);
-                oldTruck.assign(oldSlot);
+        let trucks = this.getUnassignedTrucks();
+        trucks.forEach(truck => {
+            slots = this.getUnassignedSlotsAfterNow();
+            slots = slots.filter(slot => {
+                return (slot.from > truck.arrivalPredicted);
+            })
+            if(slots.length > 0){
+                let slot = slots[0];
+                truck.assign(slot);
+                slot.assign(truck);
             }
-
         });
-
         this.draw();
-        
+
+    }
+
+    public moveLateTrucksToFreeSlots(){
+        let trucks = this.getLateTrucksAfterNow();
+        trucks.forEach(truck => {
+            let slots = this.timeslots.filter(s => {
+                return (s.from > truck.arrivalPredicted && s.truck === null);
+            });
+            if(slots.length > 0){
+                let slot = slots[0];
+                truck.slot.unassign();
+                truck.assign(slot);
+                slot.assign(truck);
+            }
+        })
+    }
+
+    public moveEarlyTrucksToFreeSlots(){
+        const cautionTime = 0;
+        let trucks = this.trucks.filter(t => {
+            return (t.arrivalPredicted + cautionTime < t.slot.from && t.arrivalPredicted > this.time);
+        });
+        trucks.forEach(truck => {
+            let slots = this.timeslots.filter(s => {
+                let unassigned = (s.truck === null);
+                let earlier = (s.from < truck.slot.from)
+                let future = (s.from > this.time)
+                let truckArrived = (truck.arrivalPredicted < s.from)
+                return (unassigned && earlier && future && truckArrived);
+            });
+            if(slots.length > 0){
+                let slot = slots[0];
+                truck.slot.unassign();
+                truck.assign(slot);
+                slot.assign(truck);
+            }
+        });
+    }
+
+    public reallocate(){
+        let slots = this.getSlotsWillBeMissedAfterNow();
+        slots.forEach(slot => {
+            let trucks = this.getExchangeTrucksForSlot(slot);
+            if (trucks.length > 0 ){
+                this.changed = true;
+                let truck = trucks[0];
+                let tempSlot = truck.slot;
+                let tempTruck = slot.truck;
+                truck.assign(slot);
+                slot.assign(truck);
+                tempTruck.assign(tempSlot);
+                tempSlot.assign(tempTruck);
+            }
+        });
+    }
+
+    private getLateTrucksAfterNow(){
+        return this.trucks.filter(t => {
+            return (t.late && t.arrivalPredicted > this.time);
+        })
+    }
+
+    private getUnassignedTrucks(){
+        return this.trucks.filter(t => {
+            return (t.slot === null);
+        })
+    }
+
+    private getUnassignedSlotsAfterNow(){
+        return this.timeslots.filter(s => {
+            return (s.truck === null && s.from > this.time);
+        })
+    }
+
+    private getExchangeTrucksForSlot(slot){
+        return this.trucks.filter(truck => {
+            let truckArrived = (truck.arrivalPredicted < slot.from);
+            let slotEarlier = (truck.slot.from > slot.from);
+            return truckArrived && ( slotEarlier || truck.late );
+        })
+
+    }
+
+    private getSlotsWillBeMissedAfterNow(){
+        return this.timeslots.filter(s => {
+            if(s.truck === null) return false;
+            return (s.truck.arrivalPredicted >= this.time && s.truck.late)
+        });
     }
 
 
@@ -155,18 +238,18 @@ export class Scenario{
         const timeslots = this.timeslots.filter(x => x.free);
         const times = timeslots.map(x => Math.abs(x.from - at));
         times.sort();
-
-        // ...
+        //...
     }
 
-    private getRandomFreeTimeslot(){
+    private getFreeTimeslot(){
         const timeslots = this.timeslots.filter(x => x.free);
-        return timeslots[0];
+        const r = Math.round(Prob.uniform(0,timeslots.length-1)(this.source));
+        return timeslots[r];
     }
 
     private trucksBookSlots(){
         this.trucks.forEach(truck => {
-            let slot = this.getRandomFreeTimeslot();
+            let slot = this.getFreeTimeslot();
             truck.assign(slot);
             slot.assign(truck);
         });
@@ -188,7 +271,7 @@ export class Scenario{
 
     private setupTimeslots(){
         this.timeslots = [];
-        for (let i = 0; i < CFG.QUANT_TRUCKS; i++){
+        for (let i = 0; i < CFG.QUANT_TIMESLOTS; i++){
             let timeslot = new Timeslot(CFG.TIME_OFFSET+i*CFG.TIMESLOT_LEN,CFG.TIME_OFFSET + (i+1)*CFG.TIMESLOT_LEN);
             timeslot.setPaper(this.paper);
             this.timeslots.push(timeslot);
@@ -202,7 +285,6 @@ export class Scenario{
             }
             return a;
         },0);
-        console.log("unused before: "+unused);
         const arr = this.trucks.map(t => t.arrivalReal);
         const max = Math.max(...arr);
         while(this.time < max){
@@ -214,7 +296,6 @@ export class Scenario{
             }
             return a;
         },0);
-        console.log("unused after: "+unused);
         
     
     }

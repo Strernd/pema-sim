@@ -90,6 +90,10 @@ export class Truck{
 
     }
 
+    public unassign(){
+        this.slot = null;
+    }
+
     public calculatePredictedArrival(t: number){
         if(!this.adoptsRealtime){
             this.arrivalPredicted = this.slot.from;
@@ -126,10 +130,10 @@ export class Truck{
         if(!this.late && this.arrived){
             this.dispatched = true;
         }
-        this.waitingTime = this.slot.from - this.arrivalPredicted;
-        if(this.waitingTime < 0){
-            this.waitingTime = Number.MAX_VALUE;
-        }
+        // this.waitingTime = this.slot.from - this.arrivalPredicted;
+        // if(this.waitingTime < 0){
+        //     this.waitingTime = Number.MAX_VALUE;
+        // }
     }
 
 
@@ -201,25 +205,25 @@ export class Truck{
             let y;
             if (CFG.INDIVIDUAL_ROWS){
                 let i = this.row;
-                y = CFG.TIMESLOT_LEN * 3 + 20 * i;
+                y = (CFG.TIMESLOT_LEN * 3 + 20 * i);
             }
             else{
                 let i = this.id;
-                y = CFG.TIMESLOT_LEN * 3 + 10 * i;
+                y = (CFG.TIMESLOT_LEN * 3 + 10 * i);
             }
             let late = (x1 > this.latestArrivalForDispatch);
             if (late) this.color = CFG.COLORS.RED;
             if (this.late) this.color = CFG.COLORS.ORANGE;
             if (x1 > x2 && x1 < this.latestArrivalForDispatch) x2 = this.latestArrivalForDispatch;
-            if(Math.abs(x1-x2) < 5){
-                x1 -= 5;
+            if(Math.abs(x1-x2) < 8){
+                x1 -= 8;
             }
             if(this.force || this.color !== arrow.color) arrow.setColor(this.color)
             if(this.force || x1 !== arrow.from.x || y !== arrow.from.y || x2 !== arrow.to.x){
                 arrow.setFrom({x: x1, y});
                 arrow.setTo({x: x2, y});
             }
-            if(this.force || arrow.width !== 3) arrow.setWidth(3);
+            if(this.force || arrow.width !== 5) arrow.setWidth(5);
             this.arrow = arrow;
             this.force = false;
 

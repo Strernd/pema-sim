@@ -18,11 +18,16 @@ export class Timeslot{
         this.to = to;
         this.latest = to - CFG.TRUCK_DISPATCH_TIME;
         this.free = true;
+        this.truck = null;
     }
 
     public assign(truck: Truck){
         this.truck = truck;
         this.free = false;
+    }
+
+    public unassign(){
+        this.truck = null;
     }
 
     public setBlock(block){
@@ -39,7 +44,9 @@ export class Timeslot{
 
     public updateBlock(){
         let block = this.block;
-        block.setColor(this.truck.color,CFG.COLORS.BLACK);
+        let color = CFG.COLORS.WHITE;
+        if(this.truck !== null) color = this.truck.color
+        block.setColor(color,CFG.COLORS.BLACK);
         this.block = block;
     }
 }

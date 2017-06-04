@@ -1,5 +1,6 @@
 import * as Raphael from 'raphael';
 import { Point } from './objects';
+import { CFG } from './CFG';
 
 export class Block{
     element: RaphaelElement;
@@ -11,7 +12,7 @@ export class Block{
     height: number;
 
     constructor(paper: RaphaelPaper, corner: Point, width, height){
-        this.element = paper.rect(corner.x, corner.y, width, height);
+        this.element = paper.rect(corner.x * CFG.SCALE, corner.y * CFG.SCALE, width * CFG.SCALE, height * CFG.SCALE);
         this.corner = corner;
         this.fillColor = null;
         this.strokeColor = null;

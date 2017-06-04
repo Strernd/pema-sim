@@ -1,5 +1,6 @@
 import * as Raphael from 'raphael';
 import { Point } from './objects';
+import { CFG } from './CFG';
 
 export class Arrow{
     element: RaphaelElement;
@@ -38,11 +39,13 @@ export class Arrow{
     }
 
     public setFrom(p: Point){
+        p = {x: p.x * CFG.SCALE, y: p.y * CFG.SCALE};
         this.from = p;
         this.redraw();
     }
 
     public setTo(p: Point){
+        p = {x: p.x * CFG.SCALE, y: p.y * CFG.SCALE}
         this.to = p;
         this.redraw();
     }
@@ -53,11 +56,13 @@ export class Arrow{
     }
 
     public setWidth(width: number){
+        width = width * CFG.SCALE;
         this.width = width;
         this.redraw();
     }
 
     public move(p: Point){
+        p = {x: p.x*CFG.SCALE, y: p.y*CFG.SCALE};
         if(this.from !== null && this.to !== null){
             this.from = {x: this.from.x + p.x, y: this.from.y + p.y};
             this.to = {x: this.to.x + p.x, y: this.to.y + p.y};
@@ -66,6 +71,7 @@ export class Arrow{
     }
 
     public setLength(length: number){
+        length = length * CFG.SCALE;
         if(this.from !== null){
             this.to = {x: this.from.x + length, y: this.from.y};
             this.redraw();
