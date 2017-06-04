@@ -19,6 +19,7 @@ export class Scenario{
     public selected: Truck;
     public eventLog;
     public KPIs;
+    private savedTime;
 
     constructor(paper, seed){
         this.changed = false;
@@ -29,6 +30,7 @@ export class Scenario{
         this.time = 0;
         this.selected = null;
         this.eventLog = [];
+        this.savedTime = 0;
         this.KPIs = {
             truckerWaitingTimeIfMissed: null,
             missedSlots: null,
@@ -38,7 +40,7 @@ export class Scenario{
             scenarioTime: null,
             pushMoves: null,
             pullMoves: null,
-            swaps: null,
+            swapMoves: null,
             totalReschedulings: null,
             savedTime: null
         };
@@ -139,6 +141,12 @@ export class Scenario{
             a += x.waitingTime;
             return a;
         },0) / initiallyInTimeTrucks.length);
+        this.KPIs.pushMoves = this.eventLog.map(x => x[0]).filter(x => (x === "push")).length;
+        this.KPIs.pullMoves = this.eventLog.map(x => x[0]).filter(x => (x === "pull")).length;
+        this.KPIs.swapMoves = this.eventLog.map(x => x[0]).filter(x => (x === "swap")).length / 2;
+        this.KPIs.totalReschedulings = this.KPIs.pushMoves + this.KPIs.pullMoves + this.KPIs.swapMoves;
+        this.KPIs.savedTime = this.savedTime;
+        
     }
 
     private displayKPIs(){
@@ -205,6 +213,7 @@ export class Scenario{
             if(slots.length > 0){
                 let slot = slots[0];
                 this.log("pull",truck.id,truck.slot,slot);
+                this.savedTime += truck.slot.from - slot.from;
                 truck.slot.unassign();
                 truck.assign(slot);
                 slot.assign(truck);
@@ -223,6 +232,7 @@ export class Scenario{
                 let tempTruck = slot.truck;
                 this.log("swap",truck.id,truck.slot,slot);
                 this.log("swap",slot.truck.id,slot,truck.slot);
+                this.savedTime += Math.abs(slot.from - truck.slot.from);
                 truck.assign(slot);
                 slot.assign(truck);
                 tempTruck.assign(tempSlot);

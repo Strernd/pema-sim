@@ -2,7 +2,7 @@ export class CFG{
     static TRUCK_DELAY_EXPT = false;
     // For non exp
     static TRUCK_DELAY_MU = 0;
-    static TRUCK_DELAY_SIGMA = 15;
+    static TRUCK_DELAY_SIGMA = 30;
     // For exp
     static TRUCK_DELAY_LAMBDA = 1;
     static LATE_EARLY_DIST = 0.7; // 0.3 => 30% early 70% late
@@ -22,9 +22,9 @@ export class CFG{
     static TRUCK_SAFETY_START_TIME_MAX = 10;
     static TRUCK_DISPATCH_TIME = 40;
     static TIME_OFFSET = 200;
-    static SEED = 7;
+    static SEED = 6;
     static DRAWING = true;
-    static INDIVIDUAL_ROWS = true;
+    static INDIVIDUAL_ROWS = false;
     static SCALE = 0.8;
     static ENABLE_SWAP = true;
     static ENABLE_PULL = true;

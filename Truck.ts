@@ -238,13 +238,13 @@ export class Truck{
             let x1 = this.arrivalReal;
             let x2 = this.slot.from;
             let y;
-            if (CFG.INDIVIDUAL_ROWS){
+            if (!CFG.INDIVIDUAL_ROWS){
                 let i = this.row;
                 y = (CFG.TIMESLOT_LEN * 3 + 20 * i);
             }
             else{
                 let i = this.id;
-                y = (CFG.TIMESLOT_LEN * 3 + 10 * i);
+                y = (CFG.TIMESLOT_LEN * 3 + 15 * i);
             }
             let late = (x1 > this.latestArrivalForDispatch);
             if (late) this.color = CFG.COLORS.RED;
