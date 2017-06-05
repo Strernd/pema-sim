@@ -106,6 +106,7 @@ export class Truck{
         this.arrivalPlanned = Math.round(this.slot.from - safetytime);
         this.start =  Math.round(this.arrivalPlanned - this.totalWay);
         this.arrivalReal = Math.round(this.start + this.totalWay + this.delay);
+        this.arrivalLatest = Math.round(this.slot.to - CFG.TRUCK_DISPATCH_TIME);
         this.initiallyLate = (this.arrivalReal > this.arrivalLatest);
         this.bookedSlot = this.slot;
         this.setEvents();

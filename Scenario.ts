@@ -8,42 +8,32 @@ import * as $ from 'jquery';
 
 
 export class Scenario{
-    public changed: boolean;
-    public source : any;
-    public seed : string;
-    public paper: any;
-    public arrowDistributionRows : Array<Array<Number>>;
-    public trucks : Array<Truck>;
-    public timeslots : Array<Timeslot>;
-    public time: number;
-    public selected: Truck;
-    public eventLog;
-    public KPIs;
-    private savedTime;
+    paper: any;
+    seed : string;
+
+    changed: boolean;
+    source : any;
+    arrowDistributionRows : Array<Array<Number>>;
+    trucks : Array<Truck>;
+    timeslots : Array<Timeslot>;
+    time: number;
+    selected: Truck;
+    eventLog;
+    KPIs;
+    savedTime;
 
     constructor(paper, seed){
-        this.changed = false;
+        this.paper = paper;
         this.seed = seed;
         this.source = (Random.engines.mt19937().seed(this.seed));
-        this.paper = paper;
+
+        this.changed = false;
         this.arrowDistributionRows = [[]];
         this.time = 0;
         this.selected = null;
         this.eventLog = [];
         this.savedTime = 0;
-        this.KPIs = {
-            truckerWaitingTimeIfMissed: null,
-            missedSlots: null,
-            unusedSlots: null,
-            earlyTruckerWaitingTime: null,
-            truckerWaitingTime: null,
-            scenarioTime: null,
-            pushMoves: null,
-            pullMoves: null,
-            swapMoves: null,
-            totalReschedulings: null,
-            savedTime: null
-        };
+        this.KPIs = {};
         this.setupTimeslots();
         this.setupTrucks();
         this.trucksBookSlots();
@@ -63,7 +53,7 @@ export class Scenario{
         content += '<span class="timeslot timeslot-new">'+to.from+'-'+to.to+'</span>';
         content += '</div>';
         this.eventLog.push([event,truck,from,to]);
-        $('#log').prepend(content);
+        if(CFG.DRAWING) $('#log').prepend(content);
     }
 
     public draw(){
@@ -153,7 +143,7 @@ export class Scenario{
         const totalWaiting = trucksMovedToEnd.reduce((a,x) => { 
             a += x.waitingTime;
             return a;
-        },0)
+        },0);
         this.KPIs.truckerWaitingTimeIfMissed = Math.round(totalWaiting / trucksMovedToEnd.length);
 
         
@@ -180,12 +170,11 @@ export class Scenario{
         if(CFG.ENABLE_PULL) this.pull();
         
         this.calculateKPIs();
-        this.displayKPIs();
+        if(CFG.DRAWING) this.displayKPIs();
         this.draw();
         
         if(CFG.DRAWING){
          $('#timer').html(String(this.time));
-
         }
         
     }
@@ -321,25 +310,11 @@ export class Scenario{
     }
 
     public play(){
-        let unused = this.trucks.reduce((a,x) => {
-            if(x.arrivalReal > x.arrivalLatest){
-                a += 1;
-            }
-            return a;
-        },0);
         const arr = this.trucks.map(t => t.arrivalReal);
         const max = Math.max(...arr);
         while(this.time < max){
             this.advance();
         }
-        unused = this.trucks.reduce((a,x) => {
-            if(x.arrivalReal > x.arrivalLatest){
-                a += 1;
-            }
-            return a;
-        },0);
-        
-    
     }
 
 

@@ -2,7 +2,7 @@ export class CFG{
     static TRUCK_DELAY_EXPT = false;
     // For non exp
     static TRUCK_DELAY_MU = 0;
-    static TRUCK_DELAY_SIGMA = 30;
+    static TRUCK_DELAY_SIGMA = 15;
     // For exp
     static TRUCK_DELAY_LAMBDA = 1;
     static LATE_EARLY_DIST = 0.7; // 0.3 => 30% early 70% late
@@ -11,10 +11,10 @@ export class CFG{
     static DELAY_FACTOR = 0.01;
 
     static RUNS = 1;
-    static QUANT_TIMESLOTS = 30;
-    static QUANT_TRUCKS = 27;
+    static QUANT_TIMESLOTS = 35;
+    static QUANT_TRUCKS = 30;
     static TIMESLOT_LEN = 50;
-    static APPEND_EMPTY_TIMESLOTS = 10;
+    static APPEND_EMPTY_TIMESLOTS = 0;
     static TRUCKS_TOTAL_WAY_MU = 500;
     static TRUCKS_TOTAL_WAY_SIGMA = 250;
     static TRUCKS_TOTAL_WAY_MIN = 100;
@@ -24,12 +24,12 @@ export class CFG{
     static TRUCK_DISPATCH_TIME = 40;
     static TIME_OFFSET = 200;
     static SEED = 6;
-    static DRAWING = true;
+    static DRAWING = false;
     static INDIVIDUAL_ROWS = false;
     static SCALE = 0.8;
     static ENABLE_SWAP = false;
     static ENABLE_PULL = false;
-    static ENABLE_PUSH = true;
+    static ENABLE_PUSH = false;
     static COLORS = {
     GREY: "#9E9E9E",
     LIGHTGREY: "#B0BEC5",
