@@ -47,6 +47,8 @@ export class Scenario{
         this.setupTimeslots();
         this.setupTrucks();
         this.trucksBookSlots();
+        this.trucks.forEach(t => t.calculateProperties());
+        this.appendEmptyTimeSlots();
         this.determineTrucksRow();
         this.draw();
     }
@@ -83,7 +85,7 @@ export class Scenario{
         if(CFG.DRAWING){
             this.determineTrucksRow();
             this.trucks.forEach(t => {
-                t.updateArrow();
+                t.draw();
             });
         }
      
@@ -127,7 +129,7 @@ export class Scenario{
 
     private calculateKPIs(){
         this.KPIs.missedSlots = this.trucks.reduce((a,x) => {
-            if(x.arrivalReal > x.latestArrivalForDispatch) a++;
+            if(x.arrivalReal > x.arrivalLatest) a++;
             return a;
         },0);
         this.KPIs.unusedSlots = this.timeslots.length - this.trucks.length;
@@ -146,6 +148,14 @@ export class Scenario{
         this.KPIs.swapMoves = this.eventLog.map(x => x[0]).filter(x => (x === "swap")).length / 2;
         this.KPIs.totalReschedulings = this.KPIs.pushMoves + this.KPIs.pullMoves + this.KPIs.swapMoves;
         this.KPIs.savedTime = this.savedTime;
+        // Trucks that have been moved to the end
+        const trucksMovedToEnd = this.trucks.filter(x => x.initiallyLate);
+        const totalWaiting = trucksMovedToEnd.reduce((a,x) => { 
+            a += x.waitingTime;
+            return a;
+        },0)
+        this.KPIs.truckerWaitingTimeIfMissed = Math.round(totalWaiting / trucksMovedToEnd.length);
+
         
     }
 
@@ -162,9 +172,7 @@ export class Scenario{
         this.time++;
 
         this.trucks.forEach(t => {
-            t.calculatePredictedArrival(this.time);
             t.calculateProperties();
-            // t.setDomContent();
         });
         
         if(CFG.ENABLE_SWAP) this.swap();
@@ -183,7 +191,7 @@ export class Scenario{
     }
 
     public push(){
-        const trucks = this.trucks.filter(t => t.late);
+        const trucks = this.trucks.filter(t => t.latePredicted);
         trucks.forEach(truck => {
             let slots = this.timeslots.filter(s => {
                 return (s.from > truck.arrivalPredicted && s.truck === null);
@@ -247,7 +255,7 @@ export class Scenario{
         return this.trucks.filter(truck => {
             let truckArrived = (truck.arrivalPredicted < slot.from);
             let slotEarlier = (truck.slot.from > slot.from);
-            return truckArrived && ( slotEarlier || truck.late );
+            return truckArrived && ( slotEarlier || truck.latePredicted );
         })
 
     }
@@ -255,7 +263,7 @@ export class Scenario{
     private getSlotsWillBeMissedAfterNow(){
         return this.timeslots.filter(s => {
             if(s.truck === null) return false;
-            return (s.truck.arrivalPredicted >= this.time && s.truck.late)
+            return (s.truck.arrivalPredicted >= this.time && s.truck.latePredicted)
         });
     }
 
@@ -295,6 +303,14 @@ export class Scenario{
         }
     }
 
+    private appendEmptyTimeSlots(){
+        for (let i = this.timeslots.length; i < CFG.QUANT_TIMESLOTS + CFG.APPEND_EMPTY_TIMESLOTS; i++){
+            let timeslot = new Timeslot(CFG.TIME_OFFSET+i*CFG.TIMESLOT_LEN,CFG.TIME_OFFSET + (i+1)*CFG.TIMESLOT_LEN);
+            timeslot.setPaper(this.paper);
+            this.timeslots.push(timeslot);
+        }
+    }
+
     private setupTimeslots(){
         this.timeslots = [];
         for (let i = 0; i < CFG.QUANT_TIMESLOTS; i++){
@@ -306,7 +322,7 @@ export class Scenario{
 
     public play(){
         let unused = this.trucks.reduce((a,x) => {
-            if(x.arrivalReal > x.latestArrivalForDispatch){
+            if(x.arrivalReal > x.arrivalLatest){
                 a += 1;
             }
             return a;
@@ -317,7 +333,7 @@ export class Scenario{
             this.advance();
         }
         unused = this.trucks.reduce((a,x) => {
-            if(x.arrivalReal > x.latestArrivalForDispatch){
+            if(x.arrivalReal > x.arrivalLatest){
                 a += 1;
             }
             return a;

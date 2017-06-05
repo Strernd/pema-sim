@@ -14,6 +14,7 @@ export class CFG{
     static QUANT_TIMESLOTS = 30;
     static QUANT_TRUCKS = 27;
     static TIMESLOT_LEN = 50;
+    static APPEND_EMPTY_TIMESLOTS = 10;
     static TRUCKS_TOTAL_WAY_MU = 500;
     static TRUCKS_TOTAL_WAY_SIGMA = 250;
     static TRUCKS_TOTAL_WAY_MIN = 100;
@@ -26,8 +27,8 @@ export class CFG{
     static DRAWING = true;
     static INDIVIDUAL_ROWS = false;
     static SCALE = 0.8;
-    static ENABLE_SWAP = true;
-    static ENABLE_PULL = true;
+    static ENABLE_SWAP = false;
+    static ENABLE_PULL = false;
     static ENABLE_PUSH = true;
     static COLORS = {
     GREY: "#9E9E9E",

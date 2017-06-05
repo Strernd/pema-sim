@@ -5,7 +5,6 @@ import {CFG} from './CFG';
 export class Timeslot{
     paper: any;
     block: Block;
-    willBeMissed: boolean;
     free: boolean;
     from: number;
     to: number;
@@ -13,7 +12,6 @@ export class Timeslot{
     truck: Truck;
 
     constructor(from: number, to: number){
-        this.willBeMissed = false;
         this.from = from;
         this.to = to;
         this.latest = to - CFG.TRUCK_DISPATCH_TIME;

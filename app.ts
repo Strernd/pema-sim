@@ -11,7 +11,7 @@ import * as $ from 'jquery';
 
 function fn(){
 // Creates canvas 320 × 200 at 10, 50
-const paper = Raphael("paper", (CFG.QUANT_TIMESLOTS * CFG.TIMESLOT_LEN  + 250 ) * CFG.SCALE, 400 * CFG.SCALE + (400 * Number(CFG.INDIVIDUAL_ROWS)));
+const paper = Raphael("paper", ((CFG.QUANT_TIMESLOTS + CFG.APPEND_EMPTY_TIMESLOTS)* CFG.TIMESLOT_LEN  + 250 ) * CFG.SCALE, 400 * CFG.SCALE + (400 * Number(CFG.INDIVIDUAL_ROWS)));
 const width = CFG.TIMESLOT_LEN;
 const app = $('#app');
 const scene = new Scenario(paper,CFG.SEED);
@@ -33,7 +33,7 @@ timeline.attr("stroke.width",1);
 const speed = 1000;
 
 let last = 0;
-const latest = CFG.TIME_OFFSET + CFG.TIMESLOT_LEN * CFG.QUANT_TIMESLOTS;
+const latest = CFG.TIME_OFFSET + CFG.TIMESLOT_LEN * (CFG.QUANT_TIMESLOTS + CFG.APPEND_EMPTY_TIMESLOTS );
 function step(timestamp) {
   let delta = timestamp - last;
     window.requestAnimationFrame(step);
