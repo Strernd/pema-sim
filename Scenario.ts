@@ -133,11 +133,13 @@ export class Scenario{
             a += x.waitingTime;
             return a;
         },0) / initiallyInTimeTrucks.length);
+        if(initiallyInTimeTrucks.length === 0) this.KPIs.earlyTruckerWaitingTime = 0;
+
         this.KPIs.pushMoves = this.eventLog.map(x => x[0]).filter(x => (x === "push")).length;
         this.KPIs.pullMoves = this.eventLog.map(x => x[0]).filter(x => (x === "pull")).length;
         this.KPIs.swapMoves = this.eventLog.map(x => x[0]).filter(x => (x === "swap")).length / 2;
         this.KPIs.totalReschedulings = this.KPIs.pushMoves + this.KPIs.pullMoves + this.KPIs.swapMoves;
-        this.KPIs.savedTime = this.savedTime;
+        this.KPIs.savedTime = Math.round(this.savedTime / this.trucks.length);
         // Trucks that have been moved to the end
         const trucksMovedToEnd = this.trucks.filter(x => x.initiallyLate);
         const totalWaiting = trucksMovedToEnd.reduce((a,x) => { 
@@ -145,8 +147,9 @@ export class Scenario{
             return a;
         },0);
         this.KPIs.truckerWaitingTimeIfMissed = Math.round(totalWaiting / trucksMovedToEnd.length);
-
-        
+        if(trucksMovedToEnd.length === 0) this.KPIs.truckerWaitingTimeIfMissed = 0;
+        const latestTruckArrival = Math.max(...this.trucks.map(t => t.arrivalReal));
+        this.KPIs.beginToEnd = latestTruckArrival + CFG.TIMESLOT_LEN - CFG.TIME_OFFSET;
     }
 
     private displayKPIs(){

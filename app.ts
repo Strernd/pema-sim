@@ -11,7 +11,7 @@ import * as $ from 'jquery';
 
 
 function fn(){
-const sim = new Simulation(100);
+const sim = new Simulation(CFG.RUNS);
 sim.run();
   
 // // Creates canvas 320 × 200 at 10, 50
