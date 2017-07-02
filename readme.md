@@ -12,3 +12,6 @@ Parameters of the Model can be changed in the CFG.ts
 To run the simulation without graphic representation uncomment the first two lines in the fn() function in app.ts and comment out the rest. Also set the Drawing Parameter to false.
 
 
+### Further questions
+
+Feel free to contact me, you can find my contact data [on my github page](http://strernd.github.io).
